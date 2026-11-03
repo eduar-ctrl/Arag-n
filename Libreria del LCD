@@ -1,0 +1,109 @@
+#ifndef CONFIG_LCD_H
+#define	CONFIG_LCD_H
+
+// PORT pines      
+#define RS RB0 // RS pin LCD display
+#define RW RB1 // RW pin LCD display
+#define EN RB2 // EN pin LCD display
+        
+// Constants
+#define Delay_LCD 20 // Delay for LCD ENABLE pin
+#define Delay_Shift 100 // Delay for char shifts in LCD
+#define Delay_Auto 500 // Delay for automatic display
+#define Delay_LED 200 // Delay for blinking LED
+        
+// Commands for LCD display
+#define ClrScreen 0x01 // LCD clear display screen
+#define ReturnHome 0x02 // LCD return home
+#define DecCursor 0x04 // LCD decrement cursor (shift cursor to left)
+#define IncCursor 0x06 // LCD increment cursor (shift cursor to right)
+#define ShiftRight 0x05 // Shift display right
+#define ShiftLeft 0x07 // Shift display left
+#define DispOFFCurOFF 0x08 // Display OFF, cursor OFF
+#define DispOFFCurON 0x0A // Display OFF, cursor ON
+#define DispONCurOFF 0x0C // Display ON, cursor OFF
+#define DispONCurBk 0x0E // Display ON cursor Blinking
+#define DispOFFCurBk 0x0F // Display OFF cursor Blinking
+#define ShiftCurLeft 0x10 // Shift cursor position to left
+#define ShiftCurRight 0x14 // Shift cursor position to right
+#define ShiftDispLeft 0x18 // Shift entire display to the left
+#define ShiftDispRight 0x1C // Shift entire display to the right
+#define FirstLine 0x80 // Cursor beginning of first line
+#define SecondLine 0xC0 // Cursor beginning of second line
+#define TwoLines57Mat 0x38 // Two lines, 5x7 matrix
+
+// PORT definitions
+#define LCD_Port PORTD // LCD display connected to PORTD
+#define LCD_Tris TRISD // LCD display I/O pin selection
+        
+// Initialise ports
+void Init_Ports_LCD(){
+TRISB0 = 0; // RS declared as output for LCD display
+TRISB1 = 0; // RW declared as output for LCD display
+TRISB2 = 0; // EN declared as output for LCD display
+
+LCD_Tris = 0; // All LCD pins declared as output
+LCD_Port = 0; // Port for LCD is declared as output
+}
+
+// Initialise variables
+void Init_Variables(){
+LCD_Port = 0; // Initialise display PORT buffer
+PORTB = 0; // Initialise PORTB
+}
+
+// Sending commands to LCD
+void Lcd_CmdWrite(unsigned char c){
+LCD_Port = c; // Place char ASCII in LCD data bus
+RS = 0; // To send commands to LCD: RS = 0
+RW = 0; // This one always to GND
+EN = 1; // Send data to LCD now
+__delay_ms(Delay_LCD); // Wait for line to stabilise
+EN = 0; // Ready, all sent
+}
+
+// Write data to LCD
+void Lcd_DataWrite(unsigned char d){
+LCD_Port = d; // Place char ASCII in LCD data bus
+RS = 1; // To send data to LCD: RS = 1
+RW = 0; // This one always to GND
+EN = 1; // Send data to LCD now
+__delay_ms(Delay_LCD); // Wait for line to syabilise
+EN = 0; // Ready, all sent
+}
+
+// Message to LCD
+void Message_LCD(unsigned char *s){
+while(*s){
+Lcd_DataWrite(*s++);
+}
+}
+
+// Inicialise LCD to position cursor and correct display of messages
+void Init_LCD(){
+Lcd_CmdWrite(TwoLines57Mat);
+Lcd_CmdWrite(DispONCurOFF);
+Lcd_CmdWrite(ClrScreen);
+Lcd_CmdWrite(FirstLine);
+}
+
+// Welcome message
+void Welcome_Msg(){
+Lcd_CmdWrite(ClrScreen);
+Lcd_CmdWrite(FirstLine);
+Message_LCD("Actividad 3:");
+Lcd_CmdWrite(SecondLine);
+Message_LCD("Ctrl Solar Motor");
+__delay_ms(1000);
+Lcd_CmdWrite(ClrScreen);
+Lcd_CmdWrite(FirstLine);
+Message_LCD("Ricardo Hurtado");
+Lcd_CmdWrite(SecondLine);
+Message_LCD("Ramirez");
+__delay_ms(1000);
+Lcd_CmdWrite(ClrScreen);
+__delay_ms(1000);
+}
+
+
+#endif	/* CONFIG_LCD_H */
